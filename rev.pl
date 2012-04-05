@@ -64,7 +64,7 @@ $|=1;
 my $helo = <>;
 chomp($helo);
 
-unless($helo eq 'HELO	1') {
+unless($helo eq 'HELO\t1') {
 	print "FAIL\n";
 	while(<>) {};
 	exit;
@@ -94,7 +94,7 @@ while(my ($dom,$prefix) = each %$domaintable) {
 
 	# ensure the n. of bits is divisable by 16 (otherwise bad stuff happens)
         unless (($bits%16)==0) {
-		print "OK	$dom has $prefix that is not divisable with 8\n";
+		print "OK\t$dom has $prefix that is not divisable with 8\n";
 		while(<>) {
 			print "END\n";
 		};
@@ -102,13 +102,13 @@ while(my ($dom,$prefix) = each %$domaintable) {
 	}
 }
 
-print "OK	Automatic reverse generator v1.0 starting\n";
+print "OK\tAutomatic reverse generator v1.0 starting\n";
 
 while(<>) {
 	chomp;
 	my @arr=split(/\t/);
 	if(@arr<6) {
-		print "LOG	PowerDNS sent unparseable line\n";
+		print "LOG\tPowerDNS sent unparseable line\n";
 		print "FAIL\n";
 		next;
 	}
@@ -116,14 +116,14 @@ while(<>) {
 	# get the request
 	my ($type,$qname,$qclass,$qtype,$id,$ip)=@arr;
 
-	print "LOG	$qname $qclass $qtype?\n" if ($debug);
+	print "LOG\t$qname $qclass $qtype?\n" if ($debug);
 
 	# forward lookup handler
 	if (($qtype eq 'AAAA' || $qtype eq 'ANY') && $qname=~/node-([^.]*).(.*)/) {
 		my $node = $1;
 		my $dom = $2;
 
-		print "LOG	$node $dom and ", $domains->{$dom}{prefix}, "\n" if ($debug);
+		print "LOG\t$node $dom and ", $domains->{$dom}{prefix}, "\n" if ($debug);
 
 		# make sure it's our domain first and reasonable
 		if ($domains->{$dom} and $node=~m/^[ybndrfg8ejkmcpqxot1uwisza345h769]+$/) {
@@ -134,8 +134,6 @@ while(<>) {
 			}
 
 			$node = to16(from32($node));
-
-			print "LOG	$node\n";
 
 			$n = (128 - $domains->{$dom}{bits}) / 4;
 
@@ -153,8 +151,8 @@ while(<>) {
 				$dname=~s/:$//;
 	
 				# reply with value
-                                print "LOG	$qname  $qclass AAAA    60      $id     $dname\n" if ($debug);
-				print "DATA	$qname	$qclass	AAAA	60	$id	$dname\n";
+                                print "LOG\t$qname\t$qclass\tAAAA\t60\t$id\t$dname\n" if ($debug);
+				print "DATA\t$qname\t$qclass\tAAAA\t60\t$id\t$dname\n";
 			}
 		}
 	# reverse lookup
@@ -179,13 +177,13 @@ while(<>) {
 				$node =~ s/^y*//;
 				$node = 'y' if ($node eq '');
 
-				print "LOG	$qname  $qclass PTR     60      $id     node-$node.$dom\n" if ($debug);
-				print "DATA	$qname	$qclass	PTR	60	$id	node-$node.$dom\n";
+				print "LOG\t$qname\t$qclass\tPTR\t60\t$id\tnode-$node.$dom\n" if ($debug);
+				print "DATA\t$qname\t$qclass\tPTR\t60\t$id\tnode-$node.$dom\n";
 			}
 		}
 	}
 	
 	#end of data
-	print "END	\n";
+	print "END\n";
 }
 
