@@ -1,0 +1,29 @@
+PowerDNS Autoreverse Generator v0.1 (c) Aki Tuomi 2012
+
+1. Installation
+2. Configuration
+
+1. Installation
+
+  Copy the script to the place of your choice. It requires no external 
+  perl components. 
+
+2. Configuration
+
+  To use the script you need some other backend to keep the SOA and static
+  records. Configure powerdns with these (replace with your config):
+
+  launch=gsqlite3,pipe
+  gsqlite3-database=/etc/powerdns/pdns.db
+  pipebackend-abi-version=1
+  pipe-command=/etc/powerdns/rev.pl
+
+  Also, edit the script and add your dynamic domains. Please note that the  
+  prefix must be divisable by 16 bits. This means, you can use the following
+  lengths: 0,16,32,48,64,80,96,112 and 128. Any other prefix length will 
+  be rejected.  
+
+  Remember to add the corresponding forward and reverse domains into the
+  other backend. 
+
+If you have problems, contact cmouse at desteem org.  
