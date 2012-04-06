@@ -13,9 +13,10 @@ use 5.005;
 # SOA to somewhere else. 
 # 
 my $domaintable = {
-        'dyn.powerdns.com' => 'fe80:3eec:c804'
+        'dyn.test' => 'fe80:0000:0250:56ff'
 };
 
+my $ttl = 300;
 my $debug = 0;
 
 # end of configuration.
@@ -23,14 +24,13 @@ my $debug = 0;
 # These helpers are for 16->32 and 32->16 conversions
 my %v2b = do {
     my $i = 0;
-    map { $_ => sprintf( "%05b", $i++ ) } ( '0' .. '9', 'A' .. 'V' );
+    map { $_ => sprintf( "%05b", $i++ ) } qw(y b n d r f g 8 e j k m c p q x o t 1 u w i s z a 3 4 5 h 7 6 9);
 };
 my %b2v = reverse %v2b;
 
 sub from32 {
   my $str = shift;
-  $str =~ tr/ybndrfg8ejkmcpqxot1uwisza345h769/0-9A-V/;
-  $str =~ tr/0-9A-V//cd;
+  $str =~ tr/ybndrfg8ejkmcpqxot1uwisza345h769//cd;
   $str =~ s/(.)/$v2b{$1}/g;
   my $padlen = (length $str) % 8;
   $str =~ s/0{$padlen}\z//;
@@ -42,7 +42,6 @@ sub to32 {
   my $ret = unpack "B*", $str;
   $ret .= 0 while ( length $ret ) % 5;
   $ret =~ s/(.....)/$b2v{$1}/g;
-  $ret =~ tr/0-9A-V/ybndrfg8ejkmcpqxot1uwisza345h769/;
   return $ret;
 }
 
@@ -64,7 +63,7 @@ $|=1;
 my $helo = <>;
 chomp($helo);
 
-unless($helo eq 'HELO\t1') {
+unless($helo eq "HELO\t1") {
 	print "FAIL\n";
 	while(<>) {};
 	exit;
@@ -79,6 +78,7 @@ while(my ($dom,$prefix) = each %$domaintable) {
 	# build reverse lookup domain
         my $tmp = $prefix;
         $tmp=~s/://g;
+	$prefix = $tmp;
 
 	# this is needed for compression
         my $bits = length($tmp)*4;
@@ -106,7 +106,7 @@ print "OK\tAutomatic reverse generator v1.0 starting\n";
 
 while(<>) {
 	chomp;
-	my @arr=split(/\t/);
+	my @arr=split(/[\t ]+/);
 	if(@arr<6) {
 		print "LOG\tPowerDNS sent unparseable line\n";
 		print "FAIL\n";
@@ -145,14 +145,13 @@ while(<>) {
 				my $tmp = $domains->{$dom}{prefix};
 					
 				# build whole IPv6 address and add : to correct placs
-				$tmp=~s/://g;
 				$dname = $tmp.$dname;
 				$dname=~s/(.{4})/$1:/g;
-				$dname=~s/:$//;
+				chop $dname;
 	
 				# reply with value
-                                print "LOG\t$qname\t$qclass\tAAAA\t60\t$id\t$dname\n" if ($debug);
-				print "DATA\t$qname\t$qclass\tAAAA\t60\t$id\t$dname\n";
+                                print "LOG\t$qname\t$qclass\tAAAA\t$ttl\t$id\t$dname\n" if ($debug);
+				print "DATA\t$qname\t$qclass\tAAAA\t$ttl\t$id\t$dname\n";
 			}
 		}
 	# reverse lookup
@@ -163,8 +162,7 @@ while(<>) {
 		foreach(keys %$domains) {
 			my $key = $_;
 			my $dom = $domains->{$_}{domain};
-			$key=~s/[.]/\\./g;
-			if ($node=~/(.*).$key$/) {
+			if ($node=~/(.*)\Q.$key\E$/) {
 				$qname = $node;
 				$node = $1;
 
@@ -177,8 +175,8 @@ while(<>) {
 				$node =~ s/^y*//;
 				$node = 'y' if ($node eq '');
 
-				print "LOG\t$qname\t$qclass\tPTR\t60\t$id\tnode-$node.$dom\n" if ($debug);
-				print "DATA\t$qname\t$qclass\tPTR\t60\t$id\tnode-$node.$dom\n";
+				print "LOG\t$qname\t$qclass\tPTR\t$ttl\t$id\tnode-$node.$dom\n" if ($debug);
+				print "DATA\t$qname\t$qclass\tPTR\t$ttl\t$id\tnode-$node.$dom\n";
 			}
 		}
 	}

@@ -2,6 +2,7 @@ PowerDNS Autoreverse Generator v0.1 (c) Aki Tuomi 2012
 
 1. Installation
 2. Configuration
+3. Testing
 
 1. Installation
 
@@ -26,4 +27,9 @@ PowerDNS Autoreverse Generator v0.1 (c) Aki Tuomi 2012
   Remember to add the corresponding forward and reverse domains into the
   other backend. 
 
-If you have problems, contact cmouse at desteem org.  
+3. Testing
+
+  The script comes with a very small test suite which you can run. It will not
+  work if you change the rev.pl settings. It'll check that the script produces
+  known good values, and also gives estimate how fast it can perform.
+ 
