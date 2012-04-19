@@ -18,6 +18,7 @@ my $domaintable = {
 
 my $ttl = 300;
 my $debug = 0;
+my $nodeprefix = 'node-';
 
 # end of configuration.
 
@@ -119,7 +120,7 @@ while(<>) {
 	print "LOG\t$qname $qclass $qtype?\n" if ($debug);
 
 	# forward lookup handler
-	if (($qtype eq 'AAAA' || $qtype eq 'ANY') && $qname=~/node-([^.]*).(.*)/) {
+	if (($qtype eq 'AAAA' || $qtype eq 'ANY') && $qname=~/${nodeprefix}([^.]*).(.*)/) {
 		my $node = $1;
 		my $dom = $2;
 
@@ -175,8 +176,8 @@ while(<>) {
 				$node =~ s/^y*//;
 				$node = 'y' if ($node eq '');
 
-				print "LOG\t$qname\t$qclass\tPTR\t$ttl\t$id\tnode-$node.$dom\n" if ($debug);
-				print "DATA\t$qname\t$qclass\tPTR\t$ttl\t$id\tnode-$node.$dom\n";
+				print "LOG\t$qname\t$qclass\tPTR\t$ttl\t$id\t$nodeprefix$node.$dom\n" if ($debug);
+				print "DATA\t$qname\t$qclass\tPTR\t$ttl\t$id\t$nodeprefix$node.$dom\n";
 			}
 		}
 	}
