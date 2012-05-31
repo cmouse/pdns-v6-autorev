@@ -33,6 +33,8 @@ PowerDNS Autoreverse Generator v0.1 (c) Aki Tuomi 2012
   To use it, set 'AUTOREV-PID' to point to the REVERSE DOMAIN of your domain.
   F.ex. if your domain is 'dyn.powerdns.com', set domainmetadata for this 
   domain with AUTOREV-PID to point to whatever ip6.arpa domain you got. 
+  AUTOREV-PID accepts id number from domains table corresponding to the
+  reverse domain.
 
   The script loads the data from database on startup, and will not be
   refreshed until next restart. 
