@@ -8,6 +8,8 @@
 use strict;
 use warnings;
 use 5.005;
+use DBI;
+use Data::Dumper;
 
 # Configure domains to give reply for, note that you *must* configure
 # SOA to somewhere else. 
@@ -15,6 +17,18 @@ use 5.005;
 my $domaintable = {
         'dyn.test' => 'fe80:0000:0250:56ff'
 };
+
+# Of course, if the above feels somewhat tedious, you can always use 
+# SQL connection to configure things. if you set this to 1, you 
+# unleash the SQL version, and it'll override your domain table. 
+my $use_database = 0;
+my $dsn = "dbi:mysql:database=pdns;host=localhost";
+my $dsn_user = "pdns";
+my $dsn_password = "password";
+
+# if you got special schema, do update this query
+my $q_domainmeta = "SELECT domains.id,domains.name,domainmetadata.kind,domainmetadata.content FROM domainmetadata, domains WHERE domainmetadata.domain_id = domains.id AND domainmetadata.kind = 'AUTOREV-PID'";
+my $q_domain = 'SELECT domains.name FROM domains WHERE id = ?';
 
 my $ttl = 300;
 my $debug = 0;
@@ -57,6 +71,57 @@ sub to16 {
   return unpack "H*", $str;
 }
 
+sub rev2prefix {
+  my $rev = shift;
+  $rev =~ s/\Q.ip6.arpa\E$//i;
+  my $prefix = join '', (reverse split /\./, $rev);
+  # then convert back into prefix
+  $prefix=~s/(.{4})/$1:/g;
+  $prefix=~s/:$//;
+  return $prefix;
+}
+
+# loads domain table from SQL
+sub load_domaintable {
+   my $d = DBI->connect($dsn, $dsn_user, $dsn_password);
+   $domaintable = {};
+   my $tmptable = {};
+   my $stmt = $d->prepare($q_domainmeta);
+   $stmt->execute or return;
+
+   if ($stmt->rows) {
+      my ($i_domain_id, $s_domain, $s_kind, $s_content);
+      $stmt->bind_columns((\$i_domain_id, \$s_domain, \$s_kind, \$s_content));
+      while($stmt->fetch) {
+         # what are we looking here... 
+         next if ($s_domain =~ /ip6\.arpa$/);
+         if ($s_kind eq 'AUTOREV-PID') {
+           $tmptable->{$i_domain_id}->{'domain'} = $s_domain;
+           $tmptable->{$i_domain_id}->{'partner_id'} = int($s_content);
+         }
+      }
+   }
+   $stmt->finish;
+
+   $stmt = $d->prepare($q_domain);
+  
+   # then we build the domaintable for real 
+   while(my ($d_id, $d_data) = each %$tmptable) {
+      $stmt->execute(($d_data->{'partner_id'})) or next;
+      if ($stmt->rows == 0) {
+         print "LOG\tWARNING: Failed to locate prefix for ",$d_data->{'domain'},"\n";
+         next;
+      }
+
+      my ($prefix) = $stmt->fetchrow_array;
+      $prefix = rev2prefix($prefix);
+      $domaintable->{$d_data->{'domain'}} = $prefix;
+   }
+
+   $stmt->finish;
+   $d->disconnect;
+}
+
 $|=1;
 
 # perform handshake. we support ABI 1
@@ -68,6 +133,11 @@ unless($helo eq "HELO\t1") {
 	print "FAIL\n";
 	while(<>) {};
 	exit;
+}
+
+if ($use_database) {
+  print "LOG\tLoading domains from database\n";
+  load_domaintable;
 }
 
 my $domains;
@@ -108,7 +178,7 @@ print "OK\tAutomatic reverse generator v1.0 starting\n";
 while(<>) {
 	chomp;
 	my @arr=split(/[\t ]+/);
-	if(@arr<6) {
+	if(@arr<6 or $arr[0] ne 'Q') {
 		print "LOG\tPowerDNS sent unparseable line\n";
 		print "FAIL\n";
 		next;

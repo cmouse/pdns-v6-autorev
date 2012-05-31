@@ -27,6 +27,16 @@ PowerDNS Autoreverse Generator v0.1 (c) Aki Tuomi 2012
   Remember to add the corresponding forward and reverse domains into the
   other backend. 
 
+  You can now also utilize domainmetadata table if you have one. You don't 
+  need to enable pdnssec support, just have the table. 
+  
+  To use it, set 'AUTOREV-PID' to point to the REVERSE DOMAIN of your domain.
+  F.ex. if your domain is 'dyn.powerdns.com', set domainmetadata for this 
+  domain with AUTOREV-PID to point to whatever ip6.arpa domain you got. 
+
+  The script loads the data from database on startup, and will not be
+  refreshed until next restart. 
+
 3. Testing
 
   The script comes with a very small test suite which you can run. It will not
