@@ -135,12 +135,14 @@ unless($helo eq "HELO\t1") {
 	exit;
 }
 
+my $domains;
+
+print "OK\tAutomatic reverse generator v1.0 starting\n";
+
 if ($use_database) {
   print "LOG\tLoading domains from database\n";
   load_domaintable;
 }
-
-my $domains;
 
 # Build domain table based on configuration
 while(my ($dom,$prefix) = each %$domaintable) {
@@ -165,15 +167,13 @@ while(my ($dom,$prefix) = each %$domaintable) {
 
 	# ensure the n. of bits is divisable by 16 (otherwise bad stuff happens)
         unless (($bits%16)==0) {
-		print "OK\t$dom has $prefix that is not divisable with 8\n";
+		print "LOG\t$dom has $prefix that is not divisable with 8\n";
 		while(<>) {
 			print "END\n";
 		};
 		exit 0;
 	}
 }
-
-print "OK\tAutomatic reverse generator v1.0 starting\n";
 
 while(<>) {
 	chomp;
