@@ -6,6 +6,7 @@ use 5.005;
 use DBI;
 use JSON::Any;
 use Data::Dumper;
+use Convert::Base32;
 
 ## CTOR for Handler
 sub new {
@@ -202,16 +203,20 @@ sub do_lookup {
            $tmp = join '', reverse split(/\./, $tmp);
            $tmp=~s/^0*//g;
            $tmp = '0' if $tmp eq '';
+           # encode $tmp
+           $tmp = encode_base32 $tmp;
            $self->rr($d_id,$name, "PTR", "node-$tmp.$dom2",0,60,1);
            return;
       }
 
       # well, maybe forward then? 
-      if ($name=~/node-([^.]*)\.\Q$dom\E$/) {
+      if ($name=~/node-([ybndrfg8ejkmcpqxot1uwisza345h769]+)\.\Q$dom\E$/) {
            my $tmp = $1;
            my $revdom = join '', reverse split /\./, $dom2;
            $revdom =~s/arpaip6//;
-           $tmp = join '', split(//,$tmp);
+           # decode $tmp
+           $tmp = decode_base32($tmp);
+           
            # check for padding
            while(length($tmp) + length($revdom) < 32) {
               $tmp = "0${tmp}";
