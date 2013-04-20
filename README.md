@@ -11,7 +11,6 @@ remote-dnssec=yes/no # depending your choice
 pipe backend is recommended. if you want to use unix or http, you need to do extra work.
 
 If you want to change the default prefix 'node' into something else, add prefix=something in the connection string.
-Future version will support per-domain and global prefix settings. 
 
 Configuring zones
 -----------------
@@ -27,6 +26,8 @@ for reverse zone
 AUTODNS, id-of-forward-zone
 
 The script uses this information to pick up your forward and reverse zones and serve them via the script. 
+
+If you want to configure per-domain prefix for the value, use AUTOPRE key for this.
 
 WARNING: Rectify-zone is not currently supported thru the script, so you need to either disable dnssec, or run rectify-zone thru gmysql
 

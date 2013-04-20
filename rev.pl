@@ -257,7 +257,7 @@ sub do_initialize {
    $self->{_username} = $p->{username};
    $self->{_password} = $p->{password};
 
-   $self->{_prefix} if ($p->{prefix});
+   $self->{_prefix} = $p->{prefix} if ($p->{prefix});
 
    # test connection
    my $d = DBI->connect($self->{_dsn}, $self->{_username}, $self->{_password});
@@ -315,6 +315,13 @@ sub do_lookup {
       }
 
       my $prefix = $self->{_prefix};
+
+      # check for custom prefix
+      $stmt = $d->prepare('SELECT content FROM domainmetadata WHERE domain_id = ? AND kind = ?');
+      $stmt->execute(($d_id, 'AUTOPRE'));
+      if ($stmt->rows) {
+         my ($prefix) = $stmt->fetchrow;
+      }
 
       # parse request. reverse first
       if ($dom =~/ip6.arpa$/ && $name=~/(.*)\.\Q$dom\E$/) {
