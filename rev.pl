@@ -6,7 +6,109 @@ use 5.005;
 use DBI;
 use JSON::Any;
 use Data::Dumper;
-use Convert::Base32;
+
+my @syms = split //, 'ybndrfg8ejkmcpqxot1uwisza345h769';
+
+my %bits2char;
+my @char2bits;
+
+for (0..$#syms) {
+    my $sym = $syms[$_];
+    my $bin = sprintf('%05b', $_);
+
+    $char2bits[ ord lc $sym ] = $bin;
+    $char2bits[ ord uc $sym ] = $bin;
+
+    do {
+        $bits2char{$bin} = $sym;
+    } while $bin =~ s/(.+)0\z/$1/s;
+}
+
+
+sub encode_base32_pre58($) {
+    length($_[0]) == bytes::length($_[0])
+        or Carp::croak('Data contains non-bytes');
+
+    my $str = unpack('B*', $_[0]);
+
+    if (length($str) < 8*1024) {
+        return join '', @bits2char{ $str =~ /.{1,5}/g };
+    } else {
+        # Slower, but uses less memory
+        $str =~ s/(.{5})/$bits2char{$1}/sg;
+        return $str;
+    }
+}
+
+
+sub encode_base32_perl58($) {
+    $_[0] =~ tr/\x00-\xFF//c
+        and Carp::croak('Data contains non-bytes');
+
+    my $str = unpack('B*', $_[0]);
+
+    if (length($str) < 8*1024) {
+        return join '', @bits2char{ unpack '(a5)*', $str };
+    } else {
+        # Slower, but uses less memory
+        $str =~ s/(.{5})/$bits2char{$1}/sg;
+        return $str;
+    }
+}
+
+
+sub decode_base32_pre58($) {
+    ( length($_[0]) != bytes::length($_[0]) || $_[0] =~ tr/ybndrfg8ejkmcpqxot1uwisza345h769//c )
+        and Carp::croak('Data contains non-base32 characters');
+
+    my $str;
+    if (length($_[0]) < 8*1024) {
+        $str = join '', @char2bits[ unpack 'C*', $_[0] ];
+    } else {
+        # Slower, but uses less memory
+        ($str = $_[0]) =~ s/(.)/$char2bits[ord($1)]/sg;
+    }
+
+    my $padding = length($str) % 8;
+    $padding < 5
+        or Carp::croak('Length of data invalid');
+    $str =~ s/0{$padding}\z//
+        or Carp::croak('Padding bits at the end of output buffer are not all zero');
+
+    return pack('B*', $str);
+}
+
+
+sub decode_base32_perl58($) {
+    $_[0] =~ tr/ybndrfg8ejkmcpqxot1uwisza345h769//c
+        and Carp::croak('Data contains non-base32 characters');
+
+    my $str;
+    if (length($_[0]) < 8*1024) {
+        $str = join '', @char2bits[ unpack 'C*', $_[0] ];
+    } else {
+        # Slower, but uses less memory
+        ($str = $_[0]) =~ s/(.)/$char2bits[ord($1)]/sg;
+    }
+
+    my $padding = length($str) % 8;
+    $padding < 5
+        or Carp::croak('Length of data invalid');
+    $str =~ s/0{$padding}\z//
+        or Carp::croak('Padding bits at the end of output buffer are not all zero');
+
+    return pack('B*', $str);
+}
+
+
+if ($] lt '5.800000') {
+    require bytes;
+    *encode_base32 = \&encode_base32_pre58;
+    *decode_base32 = \&decode_base32_pre58;
+} else {
+    *encode_base32 = \&encode_base32_perl58;
+    *decode_base32 = \&decode_base32_perl58;
+}
 
 ## CTOR for Handler
 sub new {
@@ -42,11 +144,13 @@ sub run {
         #print STDERR Dumper($req->{parameters});
         $self->$meth($req->{parameters});	
       } else {
-        $self->error("Method $meth missing");
+        # unsupported request
+        $self->error;
       }
 
       # return result
       my $ret = { result => $self->{_result}, log => $self->{_log} };
+      #print STDERR $self->{_j}->encode($ret),"\r\n";
       print $self->{_j}->encode($ret),"\r\n";
 
       $self->{_result} = $self->{_j}->false;
@@ -160,7 +264,7 @@ sub do_lookup {
    my ($d_id, $d_id_2) = $self->domain_ids($name);
 
    if (!$d_id || !$d_id_2) {
-     $self->error("not our domain");
+     $self->error;
      return;
    }
 
@@ -173,7 +277,7 @@ sub do_lookup {
    }
 
    if ($stmt->rows) {
-      while((my ($d_id,$name,$type,$content,$prio,$ttl,$auth)) = $stmt->fetchrow) {
+      while((my ($d_id,$name,$type,$content,$prio,$ttl,$auth) = $stmt->fetchrow)) {
          $self->rr($d_id,$name,$type,$content,$prio,$ttl,$auth);
       }
    } else {
@@ -204,7 +308,7 @@ sub do_lookup {
            $tmp=~s/^0*//g;
            $tmp = '0' if $tmp eq '';
            # encode $tmp
-           $tmp = encode_base32 $tmp;
+           $tmp = encode_base32($tmp);
            $self->rr($d_id,$name, "PTR", "node-$tmp.$dom2",0,60,1);
            return;
       }
@@ -215,8 +319,16 @@ sub do_lookup {
            my $revdom = join '', reverse split /\./, $dom2;
            $revdom =~s/arpaip6//;
            # decode $tmp
-           $tmp = decode_base32($tmp);
-           
+           eval '$tmp = decode_base32($tmp);';
+           if ($@) {
+               $self->error($@);
+               return;
+           }
+           # make sure it turns out to be a proper value
+           if ($tmp=~tr/a-f0-9//c) {
+              $self->error("not valid record");
+              return;
+          }
            # check for padding
            while(length($tmp) + length($revdom) < 32) {
               $tmp = "0${tmp}";
@@ -229,6 +341,81 @@ sub do_lookup {
       }
 
       $self->error;
+   }
+}
+
+sub do_adddomainkey {
+   my $self = shift;
+   my $p = shift;
+
+   my $key = $p->{key};
+   my $name = $p->{name};
+
+   my $d = $self->d;
+   my $stmt = $d->prepare('INSERT INTO cryptokeys (domain_id,flags,active,content) SELECT id,?,?,? FROM domains WHERE name = ?');
+
+   $stmt->execute(($key->{flags}, $key->{active}, $key->{content}, $name));
+   
+   $stmt = $d->prepare('SELECT LAST_INSERT_ID()');
+   $stmt->execute;
+
+   my ($kid) = $stmt->fetchrow; 
+
+   $self->{_result} = int($kid);
+}
+
+sub do_getdomainkeys {
+   my $self = shift;
+   my $p = shift;
+
+   my $d = $self->d;
+   my $stmt = $d->prepare('SELECT cryptokeys.id,flags,active,content FROM cryptokeys JOIN domains ON cryptokeys.domain_id = domains.id WHERE name = ?');
+   $stmt->execute(($p->{name}));
+
+   if ($stmt->rows) {
+      $self->{_result} = [];
+      while((my ($id,$flags,$active,$content) = $stmt->fetchrow)) {
+         if ($active) {
+           $active = $self->{_j}->true;
+         } else {
+           $active = $self->{_j}->false;
+         }
+         push @{$self->{_result}}, { id => int($id), flags => int($flags), active => $active, content => $content };
+      }
+   }
+}
+
+sub do_setdomainmetadata {
+   my $self = shift;
+   my $p = shift;
+
+   my $d = $self->d;
+   my $stmt = $d->prepare('INSERT INTO domainmetadata (domain_id,kind,content) SELECT id,?,? FROM domains WHERE name = ?');
+   
+   for my $val (@{$p->{value}}) {
+      $stmt->execute(($p->{kind},$val,$p->{name}));
+   }
+
+   $self->success;
+}
+
+sub do_getdomainmetadata {
+   my $self = shift;
+   my $p = shift;
+
+   my $name = $p->{name};
+   my $kind = $p->{kind};
+
+   my $d = $self->d;
+
+   my $stmt = $d->prepare('SELECT content FROM domainmetadata JOIN domains ON domainmetadata.domain_id = domains.id WHERE domains.name = ? AND kind = ?');
+   $stmt->execute(($name,$kind));
+
+   if ($stmt->rows) {
+     while((my ($val) = $stmt->fetchrow)) {
+       $self->{_result} = [];
+       push @{$self->{_result}},$val;
+     }
    }
 }
 
