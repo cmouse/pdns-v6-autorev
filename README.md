@@ -3,10 +3,16 @@ PowerDNS Automatic Autoreverse generator
 
 PowerDNS configuration
 ----------------------
+NB! This script will not work if you do not use newer than 3.2 version due to remotebackend bugfixes 
+that are not included here. You'll need to apply following tickets to fix things before this works for 3.2: 
+ - http://trac.powerdns.com/ticket/740
+ - http://trac.powerdns.com/ticket/697
+    
+Use the following configuration in powerdns config file
 
-launch=remote,gmysql
-remote-connection-string=pipe:command=/path/to/rev.pl,timeout=2000,dsn=DBI:mysql:database,username=user,password=pass
-remote-dnssec=yes/no # depending your choice
+    launch=remote,gmysql
+    remote-connection-string=pipe:command=/path/to/rev.pl,timeout=2000,dsn=DBI:mysql:database,username=user,password=pass
+    remote-dnssec=yes/no # depending your choice
 
 pipe backend is recommended. if you want to use unix or http, you need to do extra work.
 
@@ -19,17 +25,18 @@ To enable autorev feature for zones, you'll need a reverse and forward zone. Add
 
 for forward zone
 
-AUTODNS, id-of-reverse-zone
+    AUTODNS, id-of-reverse-zone
 
 for reverse zone
 
-AUTODNS, id-of-forward-zone
+    AUTODNS, id-of-forward-zone
 
 The script uses this information to pick up your forward and reverse zones and serve them via the script. 
 
 If you want to configure per-domain prefix for the value, use AUTOPRE key for this.
 
-WARNING: Rectify-zone is not currently supported thru the script, so you need to either disable dnssec, or run rectify-zone thru gmysql
+WARNING: Rectify-zone is not currently supported thru the script, so you need to either disable dnssec,
+or run rectify-zone thru gmysql
 
 DNSSEC
 ------
