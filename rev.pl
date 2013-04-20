@@ -1,4 +1,9 @@
 #!/usr/bin/perl
+
+## (C) Aki Tuomi 2013
+## This code is distributed with same license as 
+## PowerDNS Authoritative Server. 
+
 package RemoteBackendHandler;
 use strict;
 use warnings;
@@ -6,6 +11,11 @@ use 5.005;
 use DBI;
 use JSON::Any;
 use Data::Dumper;
+
+
+### This software uses Base32 code from 
+### Tatsuhiko Miyagawa <miyagawa@bulknews.net>
+### It has been modified to use z-base32 charset
 
 my @syms = split //, 'ybndrfg8ejkmcpqxot1uwisza345h769';
 
