@@ -128,6 +128,7 @@ sub new {
   $self->{_j} = JSON::Any->new;
   $self->{_result} = $self->{_j}->false;
   $self->{_log} = [];
+  $self->{_prefix} = 'node';
 
   bless $self, $class;
   return $self;
@@ -256,6 +257,8 @@ sub do_initialize {
    $self->{_username} = $p->{username};
    $self->{_password} = $p->{password};
 
+   $self->{_prefix} if ($p->{prefix});
+
    # test connection
    my $d = DBI->connect($self->{_dsn}, $self->{_username}, $self->{_password});
    $d->disconnect;
@@ -311,6 +314,8 @@ sub do_lookup {
          return;
       }
 
+      my $prefix = $self->{_prefix};
+
       # parse request. reverse first
       if ($dom =~/ip6.arpa$/ && $name=~/(.*)\.\Q$dom\E$/) {
            my $tmp = $1;
@@ -319,12 +324,12 @@ sub do_lookup {
            $tmp = '0' if $tmp eq '';
            # encode $tmp
            $tmp = encode_base32($tmp);
-           $self->rr($d_id,$name, "PTR", "node-$tmp.$dom2",0,60,1);
+           $self->rr($d_id,$name, "PTR", "$prefix-$tmp.$dom2",0,60,1);
            return;
       }
 
       # well, maybe forward then? 
-      if ($name=~/node-([ybndrfg8ejkmcpqxot1uwisza345h769]+)\.\Q$dom\E$/) {
+      if ($name=~/\Q$prefix\E-([ybndrfg8ejkmcpqxot1uwisza345h769]+)\.\Q$dom\E$/) {
            my $tmp = $1;
            my $revdom = join '', reverse split /\./, $dom2;
            $revdom =~s/arpaip6//;

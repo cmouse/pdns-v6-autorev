@@ -10,6 +10,9 @@ remote-dnssec=yes/no # depending your choice
 
 pipe backend is recommended. if you want to use unix or http, you need to do extra work.
 
+If you want to change the default prefix 'node' into something else, add prefix=something in the connection string.
+Future version will support per-domain and global prefix settings. 
+
 Configuring zones
 -----------------
 
