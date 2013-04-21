@@ -335,8 +335,10 @@ sub do_lookup {
            my $tmp = $1;
            $tmp = join '', reverse split(/\./, $tmp);
            $tmp=~s/^0*//g;
-           $tmp = '0' if $tmp eq '';
-           # encode $tmp
+           $tmp = '00' if $tmp eq '';
+           # encode $tmp, what if it's uneven? then pad with 0
+           $tmp = "${tmp}0" if (length($tmp)%2);
+           $tmp = pack('H*',$tmp);
            $tmp = encode_base32($tmp);
            $self->rr($d_id,$name, "PTR", "$prefix-$tmp.$dom2",0,60,1);
            return;
@@ -353,6 +355,7 @@ sub do_lookup {
                $self->error($@);
                return;
            }
+           $tmp = join '', unpack('H*', $tmp);
            # make sure it turns out to be a proper value
            if ($tmp=~tr/a-f0-9//c) {
               $self->error("not valid record");
