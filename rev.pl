@@ -1,8 +1,8 @@
 #!/usr/bin/perl
 
 ## (C) Aki Tuomi 2013
-## This code is distributed with same license as 
-## PowerDNS Authoritative Server. 
+## This code is distributed with same license as
+## PowerDNS Authoritative Server.
 
 package RemoteBackendHandler;
 use strict;
@@ -13,7 +13,7 @@ use JSON::Any;
 use Data::Dumper;
 
 
-### This software uses Base32 code from 
+### This software uses Base32 code from
 ### Tatsuhiko Miyagawa <miyagawa@bulknews.net>
 ### It has been modified to use z-base32 charset
 
@@ -153,7 +153,7 @@ sub run {
           $self->{_d} = DBI->connect($self->{_dsn}, $self->{_username}, $self->{_password});
         }
         #print STDERR Dumper($req->{parameters});
-        $self->$meth($req->{parameters});	
+        $self->$meth($req->{parameters});
       } else {
         # unsupported request
         $self->error;
@@ -209,10 +209,10 @@ sub rr {
 
    $self->{_result} = [] if (ref $self->{_result} ne 'ARRAY');
 
-   push @{$self->{_result}}, { 
-      'qname' => $name, 
-      'qtype' => $type, 
-      'content' => $content, 
+   push @{$self->{_result}}, {
+      'qname' => $name,
+      'qtype' => $type,
+      'content' => $content,
       'priority' => int($prio),
       'ttl' => int($ttl),
       'auth' => int($auth),
@@ -229,14 +229,13 @@ sub domain_ids {
    my $self = shift;
    my $name = shift;
    my $d = $self->d;
-   
-   while($name) { 
-      my $stmt = $d->prepare("SELECT domains.id,content FROM domains JOIN domainmetadata ON domains.id = domainmetadata.domain_id WHERE name = ? AND kind = ?");
-      $stmt->execute(($name, 'AUTODNS'));
 
-      if ($stmt->rows) {
-         return $stmt->fetchrow;
-      }
+   while($name) {
+      my $stmt = $d->prepare("SELECT domains.id,content FROM domains JOIN domainmetadata ON domains.id = domainmetadata.domain_id WHERE name = ? AND kind = ?");
+      my $ret = $stmt->execute(($name, 'AUTODNS'));
+      my @val = $stmt->fetchrow;
+      return @val if (@val);
+
       # get next
       ($name) = ($name=~m/^[^.]*\.(.*)$/);
    }
@@ -247,7 +246,7 @@ sub domain_ids {
 sub do_initialize {
    my $self = shift;
    my $p = shift;
- 
+
    if (!defined $p->{dsn}) {
       $self->error("Missing DSN in parameters!");
       return;
@@ -273,27 +272,32 @@ sub do_lookup {
    my $type = $p->{qtype};
    my $d = $self->d;
    my $stmt;
+   my $ret;
 
    my ($d_id, $d_id_2) = $self->domain_ids($name);
 
-   if (!$d_id || !$d_id_2) {
-     $self->error;
+   if (!$d_id) {
+     $self->error("not our domain");
+     return;
+   }
+
+   if (!$d_id_2) {
+     $self->error("missing mapping");
      return;
    }
 
    if ($type eq 'ANY') {
      $stmt = $d->prepare('SELECT domain_id,name,type,content,prio,ttl,auth FROM records WHERE name = ?');
-     $stmt->execute(($name));
+     $ret = $stmt->execute(($name));
    } else {
      $stmt = $d->prepare('SELECT domain_id,name,type,content,prio,ttl,auth FROM records WHERE name = ? AND type = ?');
-     $stmt->execute(($name,$type));
+     $ret = $stmt->execute(($name,$type));
    }
 
-   if ($stmt->rows) {
-      while((my ($d_id,$name,$type,$content,$prio,$ttl,$auth) = $stmt->fetchrow)) {
-         $self->rr($d_id,$name,$type,$content,$prio,$ttl,$auth);
-      }
-   } else {
+   while((my ($d_id,$name,$type,$content,$prio,$ttl,$auth) = $stmt->fetchrow)) {
+       $self->rr($d_id,$name,$type,$content,$prio,$ttl,$auth);
+   }
+   unless (ref $self->{_result} eq 'ARRAY') {
       # need to fetch SOA name
       $stmt = $d->prepare('SELECT name FROM records WHERE domain_id = ? AND type = ?');
       $stmt->execute(($d_id,'SOA'));
@@ -303,25 +307,21 @@ sub do_lookup {
       $stmt = $d->prepare('SELECT name FROM records WHERE domain_id = ? AND type = ?');
       $stmt->execute(($d_id_2,'SOA'));
       my ($dom2) = $stmt->fetchrow;
-    
+
       unless($dom and $dom2) {
           $self->error("Missing SOA record for domain");
           return;
       }
-    
+
       if ($type ne 'ANY' and $type ne 'PTR' and $type ne 'AAAA') {
          $self->error;
          return;
       }
 
-      my $prefix = $self->{_prefix};
-
       # check for custom prefix
       $stmt = $d->prepare('SELECT content FROM domainmetadata WHERE domain_id = ? AND kind = ?');
       $stmt->execute(($d_id, 'AUTOPRE'));
-      if ($stmt->rows) {
-         my ($prefix) = $stmt->fetchrow;
-      }
+      my ($prefix) = $stmt->fetchrow || $self->{_prefix};
 
       # parse request. reverse first
       if ($dom =~/ip6.arpa$/ && $name=~/(.*)\.\Q$dom\E$/) {
@@ -335,7 +335,7 @@ sub do_lookup {
            return;
       }
 
-      # well, maybe forward then? 
+      # well, maybe forward then?
       if ($name=~/\Q$prefix\E-([ybndrfg8ejkmcpqxot1uwisza345h769]+)\.\Q$dom\E$/) {
            my $tmp = $1;
            my $revdom = join '', reverse split /\./, $dom2;
@@ -377,11 +377,11 @@ sub do_adddomainkey {
    my $stmt = $d->prepare('INSERT INTO cryptokeys (domain_id,flags,active,content) SELECT id,?,?,? FROM domains WHERE name = ?');
 
    $stmt->execute(($key->{flags}, $key->{active}, $key->{content}, $name));
-   
+
    $stmt = $d->prepare('SELECT LAST_INSERT_ID()');
    $stmt->execute;
 
-   my ($kid) = $stmt->fetchrow; 
+   my ($kid) = $stmt->fetchrow;
 
    $self->{_result} = int($kid);
 }
@@ -394,17 +394,17 @@ sub do_getdomainkeys {
    my $stmt = $d->prepare('SELECT cryptokeys.id,flags,active,content FROM cryptokeys JOIN domains ON cryptokeys.domain_id = domains.id WHERE name = ?');
    $stmt->execute(($p->{name}));
 
-   if ($stmt->rows) {
-      $self->{_result} = [];
-      while((my ($id,$flags,$active,$content) = $stmt->fetchrow)) {
-         if ($active) {
-           $active = $self->{_j}->true;
-         } else {
-           $active = $self->{_j}->false;
-         }
-         push @{$self->{_result}}, { id => int($id), flags => int($flags), active => $active, content => $content };
+   $self->{_result} = [];
+   while((my ($id,$flags,$active,$content) = $stmt->fetchrow)) {
+      if ($active) {
+        $active = $self->{_j}->true;
+      } else {
+        $active = $self->{_j}->false;
       }
+      push @{$self->{_result}}, { id => int($id), flags => int($flags), active => $active, content => $content };
    }
+
+   $self->error unless (@{$self->{_result}});
 }
 
 sub do_setdomainmetadata {
@@ -413,7 +413,7 @@ sub do_setdomainmetadata {
 
    my $d = $self->d;
    my $stmt = $d->prepare('INSERT INTO domainmetadata (domain_id,kind,content) SELECT id,?,? FROM domains WHERE name = ?');
-   
+
    for my $val (@{$p->{value}}) {
       $stmt->execute(($p->{kind},$val,$p->{name}));
    }
@@ -433,12 +433,13 @@ sub do_getdomainmetadata {
    my $stmt = $d->prepare('SELECT content FROM domainmetadata JOIN domains ON domainmetadata.domain_id = domains.id WHERE domains.name = ? AND kind = ?');
    $stmt->execute(($name,$kind));
 
-   if ($stmt->rows) {
-     while((my ($val) = $stmt->fetchrow)) {
-       $self->{_result} = [];
-       push @{$self->{_result}},$val;
-     }
+   $self->{_result} = [];
+   while((my ($val) = $stmt->fetchrow)) {
+     $self->{_result} = [];
+     push @{$self->{_result}},$val;
    }
+
+   $self->error unless (@{$self->{_result}});
 }
 
 package main;
