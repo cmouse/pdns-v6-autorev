@@ -365,6 +365,7 @@ sub do_lookup {
            while(length($tmp) + length($revdom) < 32) {
               $tmp = "0${tmp}";
            }
+           $tmp = substr($tmp,0,32-length($revdom)) if (length($tmp) + length($revdom) > 32);
            $tmp = "$revdom$tmp";
            $tmp =~s/(.{4})/$1:/g;
            chop $tmp;
