@@ -11,7 +11,7 @@ use 5.005;
 use DBI;
 use JSON::Any;
 use Data::Dumper;
-
+use Carp ();
 
 ### This software uses Base32 code from
 ### Tatsuhiko Miyagawa <miyagawa@bulknews.net>
@@ -300,14 +300,14 @@ sub do_lookup {
    unless (ref $self->{_result} eq 'ARRAY') {
       # need to fetch SOA name
       $stmt = $d->prepare('SELECT name FROM records WHERE domain_id = ? AND type = ?');
-      $stmt->bind_param(1, $d_id, SQL_INTEGER);
+      $stmt->bind_param(1, $d_id, DBI::SQL_INTEGER);
       $stmt->bind_param(2, "SOA");
       $stmt->execute;
       # now we know the SOA name, so we can produce the actual beef
       my ($dom) = $stmt->fetchrow;
 
       $stmt = $d->prepare('SELECT name FROM records WHERE domain_id = ? AND type = ?');
-      $stmt->bind_param(1, $d_id_2, SQL_INTEGER);
+      $stmt->bind_param(1, $d_id_2, DBI::SQL_INTEGER);
       $stmt->bind_param(2, "SOA");
       $stmt->execute;
       my ($dom2) = $stmt->fetchrow;
@@ -324,7 +324,7 @@ sub do_lookup {
 
       # check for custom prefix
       $stmt = $d->prepare('SELECT content FROM domainmetadata WHERE domain_id = ? AND kind = ?');
-      $stmt->bind_param(1, $d_id, SQL_INTEGER);
+      $stmt->bind_param(1, $d_id, DBI::SQL_INTEGER);
       $stmt->bind_param(2, "AUTOPRE");
       $stmt->execute;
 
