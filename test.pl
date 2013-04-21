@@ -32,4 +32,6 @@ rpc 'lookup', {qname => 'dyn.powerdns.com', qtype => 'SOA'};
 rpc 'lookup', {qname => 'node-yy.dyn.powerdns.com', qtype => 'ANY'};
 rpc 'lookup', {qname => '6.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.e.6.0.1.0.0.2.ip6.arpa', qtype => 'ANY'};
 rpc 'lookup', {"qtype"=>"SOA","qname"=>"node-gr5y.dyn.powerdns.com","remote"=>"127.0.0.1","local"=>"127.0.0.1","real-remote"=>"127.0.0.1/32","zone-id"=>-1};
-rpc 'lookup', {"qtype"=>"ANY","qname"=>"node-gr5y.dyn.powerdns.com","remote"=>"127.0.0.1","local"=>"127.0.0.1","real-remote"=>"127.0.0.1/32","zone-id"=>-1};
+rpc 'lookup', {"qtype"=>"ANY","qname"=>"node-na.dyn.powerdns.com","remote"=>"127.0.0.1","local"=>"127.0.0.1","real-remote"=>"127.0.0.1/32","zone-id"=>-1};
+rpc 'lookup', {"qtype"=>"ANY","qname"=>"node-nynynynynynynyy.dyn.powerdns.com","remote"=>"127.0.0.1","local"=>"127.0.0.1","real-remote"=>"127.0.0.1/32","zone-id"=>-1};
+
