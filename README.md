@@ -7,11 +7,17 @@ You'll need following perl modules for this software to work
  - JSON::Any 
  - JSON::XS,JSON::DWIW or JSON
  - DBI
- - DBD::mysql
+ - DBD::mysql or DBD::sqlite
 
 For debian users
 
-    apt-get install libjson-any-perl libjson-xs-perl libdbi-perl libdbd-mysql-perl 
+    apt-get install libjson-any-perl libjson-xs-perl libdbi-perl
+    
+MySQL
+    apt-get install libdbd-mysql-perl
+    
+SQLite3
+    apt-get install libdbd-sqlite3-perl
 
 PowerDNS configuration
 ----------------------
@@ -22,11 +28,17 @@ that are not included here. You'll need to apply following tickets to fix things
 
 or you can use the remotebackend from PowerDNS SVN. 
 
-Use the following configuration in powerdns config file
+Use the following configuration in powerdns config file for mysql
 
     launch=remote,gmysql
     remote-connection-string=pipe:command=/path/to/rev.pl,timeout=2000,dsn=DBI:mysql:database,username=user,password=pass
     remote-dnssec=yes/no # depending your choice
+
+Use the following configuration in powerdns config file for sqlite
+    launch=remote,gsqlite3
+    remote-connection-string=pipe:command=/path/to/rev.pl,timeout=2000,dsn=DBI:SQLite:dbname=/path/to/db,username=user,password=pass
+    remote-dnssec=yes/no # depending your choice
+
 
 pipe backend is recommended. if you want to use unix or http, you need to do extra work.
 
