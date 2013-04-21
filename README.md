@@ -14,9 +14,11 @@ For debian users
     apt-get install libjson-any-perl libjson-xs-perl libdbi-perl
     
 MySQL
+
     apt-get install libdbd-mysql-perl
     
 SQLite3
+
     apt-get install libdbd-sqlite3-perl
 
 PowerDNS configuration
@@ -35,6 +37,7 @@ Use the following configuration in powerdns config file for mysql
     remote-dnssec=yes/no # depending your choice
 
 Use the following configuration in powerdns config file for sqlite
+
     launch=remote,gsqlite3
     remote-connection-string=pipe:command=/path/to/rev.pl,timeout=2000,dsn=DBI:SQLite:dbname=/path/to/db,username=user,password=pass
     remote-dnssec=yes/no # depending your choice
