@@ -300,12 +300,16 @@ sub do_lookup {
    unless (ref $self->{_result} eq 'ARRAY') {
       # need to fetch SOA name
       $stmt = $d->prepare('SELECT name FROM records WHERE domain_id = ? AND type = ?');
-      $stmt->execute(($d_id,'SOA'));
+      $stmt->bind_param(1, $d_id, SQL_INTEGER);
+      $stmt->bind_param(2, "SOA");
+      $stmt->execute;
       # now we know the SOA name, so we can produce the actual beef
       my ($dom) = $stmt->fetchrow;
 
       $stmt = $d->prepare('SELECT name FROM records WHERE domain_id = ? AND type = ?');
-      $stmt->execute(($d_id_2,'SOA'));
+      $stmt->bind_param(1, $d_id_2, SQL_INTEGER);
+      $stmt->bind_param(2, "SOA");
+      $stmt->execute;
       my ($dom2) = $stmt->fetchrow;
 
       unless($dom and $dom2) {
@@ -320,7 +324,10 @@ sub do_lookup {
 
       # check for custom prefix
       $stmt = $d->prepare('SELECT content FROM domainmetadata WHERE domain_id = ? AND kind = ?');
-      $stmt->execute(($d_id, 'AUTOPRE'));
+      $stmt->bind_param(1, $d_id, SQL_INTEGER);
+      $stmt->bind_param(2, "AUTOPRE");
+      $stmt->execute;
+
       my ($prefix) = $stmt->fetchrow || $self->{_prefix};
 
       # parse request. reverse first
@@ -378,10 +385,7 @@ sub do_adddomainkey {
 
    $stmt->execute(($key->{flags}, $key->{active}, $key->{content}, $name));
 
-   $stmt = $d->prepare('SELECT LAST_INSERT_ID()');
-   $stmt->execute;
-
-   my ($kid) = $stmt->fetchrow;
+   my $kid = $d->last_insert_id("","","","");
 
    $self->{_result} = int($kid);
 }
