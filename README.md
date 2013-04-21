@@ -17,8 +17,8 @@ PowerDNS configuration
 ----------------------
 NB! This script will not work if you do not use newer than 3.2 version due to remotebackend bugfixes 
 that are not included here. You'll need to apply following tickets to fix things before this works for 3.2: 
- - http://trac.powerdns.com/ticket/740
- - http://trac.powerdns.com/ticket/697
+ - http://wiki.powerdns.com/trac/ticket/740
+ - http://wiki.powerdns.com/trac/ticket/697
 
 or you can use the remotebackend from PowerDNS SVN. 
 
