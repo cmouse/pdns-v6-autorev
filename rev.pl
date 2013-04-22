@@ -342,7 +342,7 @@ sub do_lookup {
            $tmp=~s/^0*//g;
            $tmp = '00' if $tmp eq '';
            # encode $tmp, what if it's uneven? then pad with 0
-           $tmp = "${tmp}0" if (length($tmp)%2);
+           $tmp = "0${tmp}" if (length($tmp)%2);
            $tmp = pack('H*',$tmp);
            $tmp = encode_base32($tmp);
            $self->rr($d_id,$name, "PTR", "$prefix-$tmp.$dom2",0,60,1);
