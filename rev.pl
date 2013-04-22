@@ -150,7 +150,7 @@ sub run {
       my $meth = "do_" . lc($req->{method});
       if ($self->can($meth)) {
         if ($self->{_dsn}) {
-          $self->{_d} = DBI->connect($self->{_dsn}, $self->{_username}, $self->{_password});
+          $self->{_d} = DBI->connect($self->{_dsn}, $self->{_username}, $self->{_password}) or die;
         }
         #print STDERR Dumper($req->{parameters});
         $self->$meth($req->{parameters});
@@ -163,6 +163,11 @@ sub run {
       my $ret = { result => $self->{_result}, log => $self->{_log} };
       #print STDERR $self->{_j}->encode($ret),"\r\n";
       print $self->{_j}->encode($ret),"\r\n";
+
+      if ($self->{_d}) {
+        $self->d->disconnect;
+        $self->{_d} = '';
+      }
 
       $self->{_result} = $self->{_j}->false;
       $self->{_log} = [];
@@ -259,7 +264,7 @@ sub do_initialize {
    $self->{_prefix} = $p->{prefix} if ($p->{prefix});
 
    # test connection
-   my $d = DBI->connect($self->{_dsn}, $self->{_username}, $self->{_password});
+   my $d = DBI->connect($self->{_dsn}, $self->{_username}, $self->{_password}) or die;
    $d->disconnect;
 
    $self->success("Autoreverse backend initialized");
