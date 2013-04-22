@@ -4,6 +4,9 @@
 ## This code is distributed with same license as
 ## PowerDNS Authoritative Server.
 
+## You are not supposed to edit this script, please
+## see README.md for configuration information.
+
 package RemoteBackendHandler;
 use strict;
 use warnings;

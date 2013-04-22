@@ -30,6 +30,10 @@ that are not included here. You'll need to apply following tickets to fix things
 
 or you can use the remotebackend from PowerDNS SVN. 
 
+Make sure your schema has been upgraded, as this script expects your schema to conform with the one recommended for 3.2.
+You should have 'auth' field in SQL and domainmetadata table. The auth field is only required to be present, if 
+you do not enable DNSSEC support, the value is ignored. 
+
 Use the following configuration in powerdns config file for mysql
 
     launch=remote,gmysql
