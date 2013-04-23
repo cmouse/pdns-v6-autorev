@@ -24,11 +24,7 @@ SQLite3
 PowerDNS configuration
 ----------------------
 NB! This script will not work if you do not use newer than 3.2 version due to remotebackend bugfixes 
-that are not included here. You'll need to apply following tickets to fix things before this works for 3.2: 
- - http://wiki.powerdns.com/trac/ticket/740
- - http://wiki.powerdns.com/trac/ticket/697
-
-or you can use the remotebackend from PowerDNS SVN. 
+that are not included here. You can use the remotebackend from PowerDNS SVN until next version release.
 
 Make sure your schema has been upgraded, as this script expects your schema to conform with the one recommended for 3.2.
 You should have 'auth' field in SQL and domainmetadata table. The auth field is only required to be present, if 
