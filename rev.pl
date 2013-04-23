@@ -150,7 +150,7 @@ sub run {
 
    while(<>) {
       chomp;
-#      print STDERR "$_\n";
+      print STDERR "$_\n";
       next if $_ eq '';
 
       # Try to read and decode a json query 
@@ -177,7 +177,7 @@ sub run {
 
       # return result
       my $ret = { result => $self->{_result}, log => $self->{_log} };
-      #print STDERR $self->{_j}->encode($ret),"\r\n";
+      print STDERR $self->{_j}->encode($ret),"\r\n";
       print $self->{_j}->encode($ret),"\r\n";
 
       $self->{_result} = $self->{_j}->false;
