@@ -31,9 +31,11 @@ sub rpc {
   my $meth = shift;
   my %p = @_;
 
+  print "QUERY:\n";
   print $j->encode({method => $meth, parameters => \%p}),"\r\n";
   print $out $j->encode({method => $meth, parameters => \%p}),"\r\n";
   my $res = <$in>;
+  print "RESPONSE:\n";
   if ($res) {
     chomp $res;
     print $res,"\n";
@@ -70,10 +72,11 @@ rpc 'lookup', qname => '6.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.e.6.0.
 # should return 2001:6e8::16
 rpc 'lookup', "qtype"=>"SOA","qname"=>"$prefix-gr5y.dyn.powerdns.com","remote"=>"127.0.0.1","local"=>"127.0.0.1","real-remote"=>"127.0.0.1/32","zone-id"=>-1;
 # some things that should work as well
-rpc 'lookup', "qtype"=>"ANY","qname"=>"$prefix-na.dyn.powerdns.com","remote"=>"127.0.0.1","local"=>"127.0.0.1","real-remote"=>"127.0.0.1/32","zone-id"=>-1;
+rpc 'lookup', "qtype"=>"ANY","qname"=>"$prefix-ny.dyn.powerdns.com","remote"=>"127.0.0.1","local"=>"127.0.0.1","real-remote"=>"127.0.0.1/32","zone-id"=>-1;
 rpc 'lookup', "qtype"=>"ANY","qname"=>"$prefix-nynynynynynynyy.dyn.powerdns.com","remote"=>"127.0.0.1","local"=>"127.0.0.1","real-remote"=>"127.0.0.1/32","zone-id"=>-1;
-rpc 'lookup', "qtype"=>"ANY","qname"=>"$prefix-nt5gde1p31fernt5gde1p31fer.dyn.powerdns.com","remote"=>"127.0.0.1","local"=>"127.0.0.1","real-remote"=>"127.0.0.1/32","zone-id"=>-1;
+rpc 'lookup', "qtype"=>"ANY","qname"=>"$prefix-nt5gd1p31frnt5gd1p31fry.dyn.powerdns.com","remote"=>"127.0.0.1","local"=>"127.0.0.1","real-remote"=>"127.0.0.1/32","zone-id"=>-1;
 # should fail
+rpc 'lookup', "qtype"=>"ANY","qname"=>"0.2.a.1.d.2.f.7.e.1.b.a.e.7.8.5.0.0.0.0.0.0.0.0.8.e.6.0.1.0.0.2.ip6.arpa";
 rpc 'lookup', "qtype"=>"SOA","qname"=>"test.dyn.powerdns.com";
 
 }
