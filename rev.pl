@@ -21,7 +21,7 @@ use Carp ();
 ### It has been modified to use z-base32 charset
 ### Original code at http://search.cpan.org/~miyagawa/Convert-Base32/
 
-my @syms = split //, 'ybndrfg8ejkmcpqxot1uwisza345h769';
+my @syms = split //, 'ybcdfghjklmnpqrstvwxz1234567890-';
 
 my %bits2char;
 my @char2bits;
@@ -72,7 +72,7 @@ sub encode_base32_perl58($) {
 
 
 sub decode_base32_pre58($) {
-    ( length($_[0]) != bytes::length($_[0]) || $_[0] =~ tr/ybndrfg8ejkmcpqxot1uwisza345h769//c )
+    ( length($_[0]) != bytes::length($_[0]) || $_[0] =~ tr/ybcdfghjklmnpqrstvwxz1234567890-//c )
         and Carp::croak('Data contains non-base32 characters');
 
     my $str;
@@ -94,7 +94,7 @@ sub decode_base32_pre58($) {
 
 
 sub decode_base32_perl58($) {
-    $_[0] =~ tr/ybndrfg8ejkmcpqxot1uwisza345h769//c
+    $_[0] =~ tr/ybcdfghjklmnpqrstvwxz1234567890-//c
         and Carp::croak('Data contains non-base32 characters');
 
     my $str;
@@ -402,8 +402,7 @@ sub do_lookup {
       }
 
       # well, maybe forward then?
-      if ($name=~/\Q$prefix\E-([ybndrfg8ejkmcpqxot1uwisza345h769]+)\.\Q$dom\E$/) {
-
+      if ($name=~/\Q$prefix\E-([ybcdfghjklmnpqrstvwxz1234567890-]+)\.\Q$dom\E$/) {
            # this converts nt5gde1p31fer into 147661a24dcc8a82
            # and then adds domain to it ending up into
            # 2001:6e8:1c2:0:1476:61a2:4dcc:8a82
