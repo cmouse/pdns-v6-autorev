@@ -378,29 +378,18 @@ sub do_lookup {
       my ($prefix) = $stmt->fetchrow || $self->{_prefix};
 
       # parse request. reverse first
-      if ($dom =~/ip6.arpa$/ && $name=~/^([a-fA-F0-9.]*)\.\Q$dom\E$/) {
+      if ($dom =~/ip6.arpa$/ && $name=~/^([a-fA-F0-9.]+)\.\Q$dom\E$/) {
            # this converts 2.8.a.8.c.c.d.4.2.a.1.6.6.7.4.1.0.0.0.0.2.c.1.0.8.e.6.0.1.0.0.2.ip6.arpa into
            # 147661a24dcc8a82 and base32 encodes the bytes.
            # assuming 0.0.0.0.2.c.1.0.8.e.6.0.1.0.0.2.ip6.arpa is your domain.
+           my $tmp = $1;
 
            # make sure the name complies with rules..
-           my $valid = 1;
-           my @parts = split /\./, $name;
-           if (scalar(@parts) != 70) {
-               $self->error;
-               return;
-           }
-           for my $part (@parts) {
-             if ( (lenght($part) != 1) or
-                  ($part < '0' or $part > '9') and
-                  ($part < 'A' or $part > 'F') and
-                  ($part < 'a' or $part > 'f') ) {
-               $self->error;
-               return;
-             }
+           if ($name!~/^(?:[a-fA-F0-9][.]){32}ip6\.arpa/) {
+             $self->error;
+             return;
            }
 
-           my $tmp = $1;
            $tmp = join '', reverse split(/\./, $tmp);
            $tmp=~s/^0*//g;
            $tmp = '00' if $tmp eq '';
