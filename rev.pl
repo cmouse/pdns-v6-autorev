@@ -30,8 +30,8 @@ for (0..$#syms) {
     my $sym = $syms[$_];
     my $bin = sprintf('%05b', $_);
 
-    $char2bits[ ord lc $sym ] = $bin;
-    $char2bits[ ord uc $sym ] = $bin;
+    $char2bits[ ord(lc($sym)) ] = $bin;
+    $char2bits[ ord(uc($sym)) ] = $bin;
 
     do {
         $bits2char{$bin} = $sym;
@@ -39,11 +39,12 @@ for (0..$#syms) {
 }
 
 
-sub encode_base32_pre58($) {
-    length($_[0]) == bytes::length($_[0])
+sub encode_base32_pre58 {
+    my $data = shift;
+    length($data) == bytes::length($data)
         or Carp::croak('Data contains non-bytes');
 
-    my $str = unpack('B*', $_[0]);
+    my $str = unpack('B*', $data);
 
     if (length($str) < 8*1024) {
         return join '', @bits2char{ $str =~ /.{1,5}/g };
@@ -55,11 +56,12 @@ sub encode_base32_pre58($) {
 }
 
 
-sub encode_base32_perl58($) {
-    $_[0] =~ tr/\x00-\xFF//c
+sub encode_base32_perl58 {
+    my $data = shift;
+    $data =~ tr/\x00-\xFF//c
         and Carp::croak('Data contains non-bytes');
 
-    my $str = unpack('B*', $_[0]);
+    my $str = unpack('B*', $data);
 
     if (length($str) < 8*1024) {
         return join '', @bits2char{ unpack '(a5)*', $str };
@@ -71,16 +73,17 @@ sub encode_base32_perl58($) {
 }
 
 
-sub decode_base32_pre58($) {
-    ( length($_[0]) != bytes::length($_[0]) || $_[0] =~ tr/ybcdfghjklmnpqrstvwxz1234567890-//c )
+sub decode_base32_pre58 {
+    my $data = shift;
+    ( length($data) != bytes::length($data) || $data =~ tr/ybcdfghjklmnpqrstvwxz1234567890-//c )
         and Carp::croak('Data contains non-base32 characters');
 
     my $str;
-    if (length($_[0]) < 8*1024) {
-        $str = join '', @char2bits[ unpack 'C*', $_[0] ];
+    if (length($data) < 8*1024) {
+        $str = join '', @char2bits[ unpack 'C*', $data ];
     } else {
         # Slower, but uses less memory
-        ($str = $_[0]) =~ s/(.)/$char2bits[ord($1)]/sg;
+        ($str = $data) =~ s/(.)/$char2bits[ord($1)]/sg;
     }
 
     my $padding = length($str) % 8;
@@ -93,16 +96,17 @@ sub decode_base32_pre58($) {
 }
 
 
-sub decode_base32_perl58($) {
-    $_[0] =~ tr/ybcdfghjklmnpqrstvwxz1234567890-//c
+sub decode_base32_perl58 {
+    my $data = shift;
+    $data =~ tr/ybcdfghjklmnpqrstvwxz1234567890-//c
         and Carp::croak('Data contains non-base32 characters');
 
     my $str;
-    if (length($_[0]) < 8*1024) {
-        $str = join '', @char2bits[ unpack 'C*', $_[0] ];
+    if (length($data) < 8*1024) {
+        $str = join '', @char2bits[ unpack 'C*', $data ];
     } else {
         # Slower, but uses less memory
-        ($str = $_[0]) =~ s/(.)/$char2bits[ord($1)]/sg;
+        ($str = $data) =~ s/(.)/$char2bits[ord($1)]/sg;
     }
 
     my $padding = length($str) % 8;
@@ -183,12 +187,14 @@ sub run {
       $self->{_result} = $self->{_j}->false;
       $self->{_log} = [];
    }
+   return;
 }
 
 ## Add a line into log
-sub log {
+sub rlog {
    my $self = shift;
    push @{$self->{_log}}, shift;
+   return;
 }
 
 ## Set return value to 'true', optionally log
@@ -196,7 +202,8 @@ sub success {
    my $self = shift;
    $self->{_result} = $self->{_j}->true;
    my $l = shift;
-   $self->log($l) if ($l);
+   $self->rlog($l) if ($l);
+   return;
 }
 
 ## Set result to result, optionally log
@@ -205,7 +212,8 @@ sub result {
    my $res = shift;
    $self->{_result} = $res;
    my $l = shift;
-   $self->log($l) if ($l);
+   $self->rlog($l) if ($l);
+   return;
 }
 
 ## Set result to 'false', optionally log
@@ -213,7 +221,8 @@ sub error {
    my $self = shift;
    $self->{_result} = $self->{_j}->false;
    my $l = shift;
-   $self->log($l) if ($l);
+   $self->rlog($l) if ($l);
+   return;
 }
 
 ## Add rr into result rr(name,type,content,prio,ttl)
@@ -240,6 +249,7 @@ sub rr {
       'auth' => int($auth),
       'domain_id' => int($d_id)
    };
+   return;
 }
 
 ## Return database connection
@@ -299,6 +309,7 @@ sub do_initialize {
    my $d = DBI->connect_cached($self->{_dsn}, $self->{_username}, $self->{_password}) or die;
 
    $self->success("Autoreverse backend initialized");
+   return;
 }
 
 ## lookup method 
@@ -419,7 +430,7 @@ sub do_lookup {
            $revdom =~s/arpaip6//; # we need to remove this
 
            # decode $tmp, if possible.
-           eval '$tmp = decode_base32($tmp);';
+           eval { $tmp = decode_base32($tmp); };
            if ($@) {
                $self->error($@);
                return;
@@ -451,6 +462,7 @@ sub do_lookup {
 
       $self->error;
    }
+   return;
 }
 
 
@@ -471,6 +483,7 @@ sub do_adddomainkey {
 
    # get the inserted record ID and return it
    $self->{_result} = int($kid);
+   return;
 }
 
 # getDomainKeys method call
@@ -494,6 +507,7 @@ sub do_getdomainkeys {
 
    # no keys found?
    $self->error unless (@{$self->{_result}});
+   return;
 }
 
 # setDomainMetaData method call
@@ -517,6 +531,7 @@ sub do_setdomainmetadata {
 
    # it always succeeds
    $self->success;
+   return;
 }
 
 # getDomainMetaData method call 
@@ -539,6 +554,7 @@ sub do_getdomainmetadata {
    }
 
    $self->error unless (@{$self->{_result}});
+   return;
 }
 
 package main;
