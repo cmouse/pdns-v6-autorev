@@ -28,7 +28,7 @@ that are not included here. You can use the remotebackend from PowerDNS SVN unti
 
 Make sure your schema has been upgraded, as this script expects your schema to conform with the one recommended for 3.2.
 You should have 'auth' field in SQL and domainmetadata table. The auth field is only required to be present, if 
-you do not enable DNSSEC support, the value is ignored. 
+you enable DNSSEC support, otherwise the value is ignored. 
 
 Use the following configuration in powerdns config file for mysql
 
