@@ -23,12 +23,10 @@ SQLite3
 
 PowerDNS configuration
 ----------------------
-NB! This script will not work if you do not use newer than 3.2 version due to remotebackend bugfixes 
-that are not included here. You can use the remotebackend from PowerDNS SVN until next version release.
+Minimum required version of PowerDNS is 3.3.
 
-Make sure your schema has been upgraded, as this script expects your schema to conform with the one recommended for 3.2.
-You should have 'auth' field in SQL and domainmetadata table. The auth field is only required to be present, if 
-you enable DNSSEC support, otherwise the value is ignored. 
+Make sure your schema has been upgraded, as this script expects your schema to conform with the one recommended for 3.3.
+You should have 'auth' field in records table, and domainmetadata table present. The auth field is only required to be present, if you enable DNSSEC support, otherwise the value is ignored. 
 
 Use the following configuration in powerdns config file for mysql
 
@@ -42,8 +40,7 @@ Use the following configuration in powerdns config file for sqlite
     remote-connection-string=pipe:command=/path/to/rev.pl,timeout=2000,dsn=DBI:SQLite:dbname=/path/to/db,username=user,password=pass
     remote-dnssec=yes/no # depending your choice
 
-
-pipe backend is recommended. if you want to use unix or http, you need to do extra work.
+pipe backend is recommended. if you want to use unix or http, you need to do extra work. For unix connector mode it is possibly enough to use socat. 
 
 If you want to change the default prefix 'node' into something else, add prefix=something in the connection string.
 
@@ -65,7 +62,7 @@ The script uses this information to pick up your forward and reverse zones and s
 If you want to configure per-domain prefix for the value, use AUTOPRE key for this.
 
 WARNING: Rectify-zone is not currently supported thru the script, so you need to either disable dnssec,
-or run rectify-zone thru gmysql
+or run rectify-zone thru gmysql (or gsqlite3).
 
 DNSSEC
 ------
