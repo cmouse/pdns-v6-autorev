@@ -574,7 +574,7 @@ sub do_getalldomainmetadata {
      }
    }
 
-   $self->error unless (@{$self->{_result}});
+   $self->error unless scalar(%{$self->{_result}});
    return;
 }
 
