@@ -557,6 +557,27 @@ sub do_getdomainmetadata {
    return;
 }
 
+sub do_getalldomainmetadata {
+   my $self = shift;
+   my $p = shift;
+
+   my $name = $p->{name};
+   my $d = $self->d;
+   my $stmt = $d->prepare('SELECT kind,content FROM domainmetadata JOIN domains ON domainmetadata.domain_id = domains.id WHERE domains.name = ?');
+   $self->{_result} = {};
+   while((my ($val) = $stmt->fetchrow)) {
+     my ($kind,$val) = @_;
+     if ($self->{_result}->{$kind}) {
+       push @{$self->{_result}->{$kind}},$val;
+     } else {
+       $self->{_result}->{$kind} = [$val];
+     }
+   }
+
+   $self->error unless (@{$self->{_result}});
+   return;
+}
+
 package main;
 use strict;
 use warnings;
