@@ -564,9 +564,9 @@ sub do_getalldomainmetadata {
    my $name = $p->{name};
    my $d = $self->d;
    my $stmt = $d->prepare('SELECT kind,content FROM domainmetadata JOIN domains ON domainmetadata.domain_id = domains.id WHERE domains.name = ?');
+   $stmt->execute(($name));
    $self->{_result} = {};
-   while((my ($val) = $stmt->fetchrow)) {
-     my ($kind,$val) = @_;
+   while((my ($kind,$val) = $stmt->fetchrow)) {
      if ($self->{_result}->{$kind}) {
        push @{$self->{_result}->{$kind}},$val;
      } else {
