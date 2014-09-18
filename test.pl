@@ -79,4 +79,6 @@ rpc 'lookup', "qtype"=>"ANY","qname"=>"$prefix-nt5gd1p31frnt5gd1p31fry.dyn.power
 rpc 'lookup', "qtype"=>"ANY","qname"=>"0.2.a.1.d.2.f.7.e.1.b.a.e.7.8.5.0.0.0.0.0.0.0.0.8.e.6.0.1.0.0.2.ip6.arpa";
 rpc 'lookup', "qtype"=>"SOA","qname"=>"test.dyn.powerdns.com";
 
+rpc 'getalldomainmetadata', 'name' => 'dyn.powerdns.com';
+
 }
