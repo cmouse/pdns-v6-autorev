@@ -7,7 +7,7 @@ You'll need following perl modules for this software to work
  - JSON::Any 
  - JSON::XS,JSON::DWIW or JSON
  - DBI
- - DBD::mysql or DBD::sqlite
+ - DBD::mysql, DBD::sqlite or DBD::Pg
 
 For debian users
 
@@ -20,6 +20,10 @@ MySQL
 SQLite3
 
     apt-get install libdbd-sqlite3-perl
+    
+PostgreSQL
+
+    apt-get install libdbd-pg-perl
 
 PowerDNS configuration
 ----------------------
@@ -32,18 +36,19 @@ Use the following configuration in powerdns config file for mysql
 
     launch=remote,gmysql
     remote-connection-string=pipe:command=/path/to/rev.pl,timeout=2000,dsn=DBI:mysql:database,username=user,password=pass
-    remote-dnssec=yes/no # depending your choice
+    remote-dnssec=yes/no # depending on your choice
 
 Use the following configuration in powerdns config file for sqlite
 
     launch=remote,gsqlite3
     remote-connection-string=pipe:command=/path/to/rev.pl,timeout=2000,dsn=DBI:SQLite:dbname=/path/to/db,username=user,password=pass
-    remote-dnssec=yes/no # depending your choice
+    remote-dnssec=yes/no # depending on your choice
 
 Use the following configuration in powerdns config file for postgresql
 
     launch=remote,gpgsql
-    remote-connection-string=pipe:command=/etc/powerdns/rev.pl,timeout=2000,dsn=DBI:Pg:dbname=powerdns;host=127.0.0.1;port=5432,username=powerdns,password=password
+    remote-connection-string=pipe:command=/path/to/rev.pl,timeout=2000,dsn=DBI:Pg:dbname=database;host=127.0.0.1;port=5432,username=user,password=pass
+    remote-dnssec=yes/no # depending on your choice
 
 pipe backend is recommended. if you want to use unix or http, you need to do extra work. For unix connector mode it is possibly enough to use socat. 
 
@@ -67,7 +72,7 @@ The script uses this information to pick up your forward and reverse zones and s
 If you want to configure per-domain prefix for the value, use AUTOPRE key for this.
 
 WARNING: Rectify-zone is not currently supported thru the script, so you need to either disable dnssec,
-or run rectify-zone thru gmysql (or gsqlite3).
+or run rectify-zone thru gmysql (or gsqlite3/gpgsql).
 
 DNSSEC
 ------
