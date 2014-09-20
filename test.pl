@@ -81,4 +81,6 @@ rpc 'lookup', "qtype"=>"SOA","qname"=>"test.dyn.powerdns.com";
 
 rpc 'getalldomainmetadata', 'name' => 'dyn.powerdns.com';
 
+rpc 'adddomainkey', 'name' => 'dyn.powerdns.com', 'key' => { 'flags' => 257, 'active' => 1, 'content' => 'foobar key' }
+
 }
