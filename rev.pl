@@ -479,7 +479,7 @@ sub do_adddomainkey {
 
    $stmt->execute(($key->{flags}, $key->{active}, $key->{content}, $name));
 
-   my $kid = $d->last_insert_id("","","","");
+   my $kid = $d->last_insert_id("","","cryptokeys","");
 
    # get the inserted record ID and return it
    $self->{_result} = int($kid);
