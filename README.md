@@ -77,7 +77,8 @@ or run rectify-zone thru gmysql (or gsqlite3/gpgsql).
 DNSSEC
 ------
 
-To enable DNSSEC you need to first run secure-zone and then set-nsec3 with narrow. Only NSEC3 narrow is supported. 
+To enable DNSSEC you need to first run secure-zone and then set-nsec3 with narrow. Only NSEC3 narrow is supported for forward zones, you can use NSEC/NSEC3 non-narrow for reverse
+zones.  
 
 Support
 -------
