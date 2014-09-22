@@ -81,6 +81,15 @@ rpc 'lookup', "qtype"=>"SOA","qname"=>"test.dyn.powerdns.com";
 
 rpc 'getalldomainmetadata', 'name' => 'dyn.powerdns.com';
 
-rpc 'adddomainkey', 'name' => 'dyn.powerdns.com', 'key' => { 'flags' => 257, 'active' => 1, 'content' => 'foobar key' }
+#rpc 'adddomainkey', 'name' => 'dyn.powerdns.com', 'key' => { 'flags' => 257, 'active' => 1, 'content' => 'foobar key' }
+
+rpc 'getbeforeandafternamesabsolute', 'qname' => '6 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0', 'id' => 3;
+rpc 'getbeforeandafternamesabsolute', 'qname' => '6 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0', 'id' => 3;
+rpc 'getbeforeandafternamesabsolute', 'qname' => '6 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0', 'id' => 3;
+
+rpc 'getbeforeandafternamesabsolute', 'qname' => '', 'id' => 3;
+rpc 'getbeforeandafternamesabsolute', 'qname' => 'x nines', 'id' => 3;
+rpc 'getbeforeandafternamesabsolute', 'qname' => '0 nines', 'id' => 3;
+rpc 'getbeforeandafternamesabsolute', 'qname' => '- nines', 'id' => 3;
 
 }
