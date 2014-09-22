@@ -659,7 +659,7 @@ sub getbeforeandafternamesabsolute {
     return ("",$first);
   }
 
-  if ($self->isinvalid($p->{qname})==1 or $dnibbles + $qnibbles > 32) {
+  if ($self->isinvalid($p->{qname})==1 || $dnibbles + $qnibbles > 32) {
     my @qarr = split / /, $p->{qname};
     my $prefix = '';
     my $prev = '';
@@ -689,7 +689,7 @@ sub getbeforeandafternamesabsolute {
 
     my ($a,$b,$c,$d) = sort(("",$prev,$cur,$next));
 
-# print STDERR "start\n$a\n$b\n$c\n$d\nstop\n";
+#print STDERR "start\n$a\n$b\n$c\n$d\nstop\n";
 
     return ($prev,$next) if ($cur eq $c);
     return ("",$first) if ($cur eq $b);
@@ -697,8 +697,10 @@ sub getbeforeandafternamesabsolute {
   }
 
   if ($dnibbles + $qnibbles < 32) {
-    # before is "" and after is 0 0 0 ...
-    return ("", $first);
+    # expand until it has correct number of nibbles
+    my $name = $p->{qname} . " " . ( "0 " x ($nnibbles-$qnibbles));
+    chop $name;
+    return ($self->decrRevIP($name), $self->incrRevIP($name));
   }
 
   if ($dnibbles + $qnibbles == 32) {
