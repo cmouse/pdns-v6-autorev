@@ -700,7 +700,7 @@ sub getbeforeandafternamesabsolute {
     # expand until it has correct number of nibbles
     my $name = $p->{qname} . " " . ( "0 " x ($nnibbles-$qnibbles));
     chop $name;
-    return ($self->decrRevIP($name), $self->incrRevIP($name));
+    return ($name, $self->incrRevIP($name));
   }
 
   if ($dnibbles + $qnibbles == 32) {
