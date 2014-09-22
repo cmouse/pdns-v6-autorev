@@ -618,6 +618,18 @@ sub decrRevIP {
   return $newname;
 }
 
+sub isinvalid {
+  my $self = shift;
+  my $name = shift;
+  for my $let (split / /, $name) {
+    unless ($let=~/^[0-9a-f]$/i) {
+      # problematic.
+      return 1;
+    }
+  }
+  return 0;
+}
+
 sub getbeforeandafternamesabsolute {
   my $self = shift;
   my $p = shift;
@@ -635,25 +647,53 @@ sub getbeforeandafternamesabsolute {
 
   my $dnibbles = length($revdom)/2; # domain bit
   my $nnibbles = 32-$dnibbles;      # name bit
-  my $qnibbles = length(" ".$p->{qname})/2;
+  my $qnibbles = scalar(split(/ /, $p->{qname}));
   my $first = "0 " x $nnibbles;
   my $last = "f " x $nnibbles;
+
   chop $first;
   chop $last;
 
   if ($p->{qname} eq "") {
     # empty qname full result
-    return ($first,$last);
+    return ("",$first);
   }
 
-  for my $let (split / /, $p->{qname}) {
-    unless ($let=~/^[0-9a-f]$/i) {
-      my ($a,$b,$c) = sort ($first,$last,$p->{qname});
-      return ("", $first) if ($a eq $p->{qname});
-      return ($first,$last) if ($b eq $p->{qname});
-      return ($last, "") if ($c eq $p->{qname});
-      last;
+  if ($self->isinvalid($p->{qname})==1) {
+    my @qarr = split / /, $p->{qname};
+    my $prefix = '';
+    my $prev;
+    my $cur = $p->{qname};
+    my $next;
+    my $i;
+    my $plen=0;
+
+    for(my $i=0;$i<scalar(@qarr);$i++) {
+      my $tmpprefix = join ' ', @qarr[0..$i];
+      if ($self->isinvalid($tmpprefix)==0) {
+        $prefix = $tmpprefix;
+      } else { last; }
     }
+
+    if ($prefix ne "") {
+      $plen = length(" $prefix")/2;
+      $prefix = "$prefix ";
+    }
+
+    if ($plen < 32) {
+      $prev = $prefix . ("f " x ($nnibbles-$plen));
+      chop $prev;
+      $next = $self->incrRevIP($prefix);
+      $next = $next . ("0 " x ($nnibbles-$plen));
+      # need to generate suitable thing with prefix
+      chop $next;
+    }
+
+    my ($a,$b,$c,$d) = sort(("",$prev,$cur,$next));
+
+    return ("",$first) if ($cur eq $b);
+    return ($prev,$next) if ($cur eq $c);
+    return ($last, "") if ($cur eq $d);
   }
 
   if ($dnibbles + $qnibbles < 32) {
@@ -661,12 +701,8 @@ sub getbeforeandafternamesabsolute {
     return ("", $first);
   }
 
-  if ($dnibbles + $qnibbles > 32) {
-    return ($last, "");
-  }
-
   if ($dnibbles + $qnibbles == 32) {
-    my $prev = $self->decrRevIP($p->{qname}); # overflow safe
+    my $prev = $p->{qname};
     my $next = $self->incrRevIP($p->{qname});
 
     if ($p->{qname} eq $first) {
@@ -678,7 +714,6 @@ sub getbeforeandafternamesabsolute {
     }
   }
 }
-
 
 sub do_getbeforeandafternamesabsolute {
   my $self = shift;
