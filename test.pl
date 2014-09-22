@@ -88,6 +88,9 @@ rpc 'getbeforeandafternamesabsolute', 'qname' => 'x 1 0 0 0 0 0 0 0 0 0 0 0 0 0 
 rpc 'getbeforeandafternamesabsolute', 'qname' => '6 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0', 'id' => 3;
 rpc 'getbeforeandafternamesabsolute', 'qname' => '6 1 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0 0', 'id' => 3;
 rpc 'getbeforeandafternamesabsolute', 'qname' => '1 0 0 0 0 0 0 0 0 0 1 1 1 1 1 1 f f f f f', 'id' => 3;
+rpc 'getbeforeandafternamesabsolute', 'qname' => '0', 'id' => 3;
+rpc 'getbeforeandafternamesabsolute', 'qname' => 'a b c d', 'id' => 3;
+rpc 'getbeforeandafternamesabsolute', 'qname' => '1', 'id' => 3;
 rpc 'getbeforeandafternamesabsolute', 'qname' => '', 'id' => 3;
 rpc 'getbeforeandafternamesabsolute', 'qname' => 'x nines', 'id' => 3;
 rpc 'getbeforeandafternamesabsolute', 'qname' => '0 nines', 'id' => 3;
