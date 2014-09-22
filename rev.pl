@@ -578,6 +578,122 @@ sub do_getalldomainmetadata {
   return;
 }
 
+sub incrRevIP {
+  my $self = shift;
+  my $name = shift;
+  my $newname = "";
+
+  while((my $let = chop $name) ne '') {
+    if ($let eq " ") {
+      $newname = "$let$newname";
+    } elsif ($let ne 'f') {
+      $let = hex($let)+1;
+      $newname = $name . sprintf("%x",$let) . $newname;
+      last;
+    } else {
+      $newname = "0$newname";
+    }
+  }
+
+  return $newname;
+}
+
+sub decrRevIP {
+  my $self = shift;
+  my $name = shift;
+  my $newname = "";
+
+  while((my $let = chop $name) ne '') {
+    if ($let eq " ") {
+      $newname = "$let$newname";
+    } elsif ($let ne '0') {
+      $let = hex($let)-1;
+      $newname = $name . sprintf("%x",$let) . $newname;
+      last;
+    } else {
+      $newname = "f$newname";
+    }
+  }
+
+  return $newname;
+}
+
+sub getbeforeandafternamesabsolute {
+  my $self = shift;
+  my $p = shift;
+
+  my $stmt = $self->d->prepare('SELECT name FROM domains WHERE id = ?');
+  $stmt->execute(($p->{id}));
+  my ($dom) = $stmt->fetchrow;
+
+  unless($dom and $dom=~/ip6\.arpa.?$/) {
+    return;
+  }
+
+  my $revdom = join ' ', reverse split /\./, $dom;
+  $revdom =~s/arpa ip6//; # we need to remove this
+
+  my $dnibbles = length($revdom)/2; # domain bit
+  my $nnibbles = 32-$dnibbles;      # name bit
+  my $qnibbles = length(" ".$p->{qname})/2;
+  my $first = "0 " x $nnibbles;
+  my $last = "f " x $nnibbles;
+  chop $first;
+  chop $last;
+
+  if ($p->{qname} eq "") {
+    # empty qname full result
+    return ($first,$last);
+  }
+
+  for my $let (split / /, $p->{qname}) {
+    unless ($let=~/^[0-9a-f]$/i) {
+      my ($a,$b,$c) = sort ($first,$last,$p->{qname});
+      return ("", $first) if ($a eq $p->{qname});
+      return ($first,$last) if ($b eq $p->{qname});
+      return ($last, "") if ($c eq $p->{qname});
+      last;
+    }
+  }
+
+  if ($dnibbles + $qnibbles < 32) {
+    # before is "" and after is 0 0 0 ...
+    return ("", $first);
+  }
+
+  if ($dnibbles + $qnibbles > 32) {
+    return ($last, "");
+  }
+
+  if ($dnibbles + $qnibbles == 32) {
+    my $prev = $self->decrRevIP($p->{qname}); # overflow safe
+    my $next = $self->incrRevIP($p->{qname});
+
+    if ($p->{qname} eq $first) {
+      return ("", $next);
+    } elsif ($p->{qname} eq $last) {
+      return ($prev, "");
+    } else {
+      return ($prev,$next);
+    }
+  }
+}
+
+
+sub do_getbeforeandafternamesabsolute {
+  my $self = shift;
+
+  my @result = $self->getbeforeandafternamesabsolute(shift);
+ 
+  if (scalar(@result)) {
+    my ($before,$after) = @result;
+    $self->{_result} = {"before" => $before, "after" => $after};
+    return;
+  }
+
+  $self->error;
+}
+
 package main;
 use strict;
 use warnings;
