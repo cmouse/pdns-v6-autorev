@@ -659,16 +659,16 @@ sub getbeforeandafternamesabsolute {
     return ("",$first);
   }
 
-  if ($self->isinvalid($p->{qname})==1) {
+  if ($self->isinvalid($p->{qname})==1 or $dnibbles + $qnibbles > 32) {
     my @qarr = split / /, $p->{qname};
     my $prefix = '';
-    my $prev;
+    my $prev = '';
     my $cur = $p->{qname};
-    my $next;
+    my $next = '';
     my $i;
     my $plen=0;
 
-    for(my $i=0;$i<scalar(@qarr);$i++) {
+    for(my $i=0;$i<scalar(@qarr) && $i<$nnibbles;$i++) {
       my $tmpprefix = join ' ', @qarr[0..$i];
       if ($self->isinvalid($tmpprefix)==0) {
         $prefix = $tmpprefix;
@@ -678,21 +678,21 @@ sub getbeforeandafternamesabsolute {
     if ($prefix ne "") {
       $plen = length(" $prefix")/2;
       $prefix = "$prefix ";
-    }
+    };
 
-    if ($plen < 32) {
-      $prev = $prefix . ("f " x ($nnibbles-$plen));
-      chop $prev;
-      $next = $self->incrRevIP($prefix);
-      $next = $next . ("0 " x ($nnibbles-$plen));
-      # need to generate suitable thing with prefix
-      chop $next;
-    }
+    $prev = $prefix . ("f " x ($nnibbles-$plen));
+    chop $prev;
+    $next = $self->incrRevIP($prefix);
+    $next = $next . ("0 " x ($nnibbles-$plen));
+    # need to generate suitable thing with prefix
+    chop $next;
 
     my ($a,$b,$c,$d) = sort(("",$prev,$cur,$next));
 
-    return ("",$first) if ($cur eq $b);
+# print STDERR "start\n$a\n$b\n$c\n$d\nstop\n";
+
     return ($prev,$next) if ($cur eq $c);
+    return ("",$first) if ($cur eq $b);
     return ($last, "") if ($cur eq $d);
   }
 
@@ -720,7 +720,7 @@ sub do_getbeforeandafternamesabsolute {
 
   my @result = $self->getbeforeandafternamesabsolute(shift);
  
-  if (scalar(@result)) {
+  if (scalar(@result)>0) {
     my ($before,$after) = @result;
     $self->{_result} = {"before" => $before, "after" => $after};
     return;
