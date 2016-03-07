@@ -1,5 +1,5 @@
-PowerDNS Automatic Autoreverse generator
-========================================
+PowerDNS Automatic Autoreverse generator for IPv6 addresses
+===========================================================
 
 Required software
 -----------------
