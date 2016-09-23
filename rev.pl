@@ -549,7 +549,6 @@ sub do_getdomainmetadata {
 
   $self->{_result} = [];
   while((my ($val) = $stmt->fetchrow)) {
-    $self->{_result} = [];
     push @{$self->{_result}},$val;
   }
 
