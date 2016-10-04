@@ -317,6 +317,7 @@ sub do_lookup {
   my $self = shift;
   my $p = shift;
   my $name = $p->{qname};
+  $name =~ s/\.$//;
   my $type = $p->{qtype};
   my $d = $self->d;
   my $stmt;
