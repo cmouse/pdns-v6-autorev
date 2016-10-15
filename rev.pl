@@ -373,6 +373,11 @@ sub do_lookup {
          return;
      }
 
+     if ($type eq 'SOA') {
+        $self->error;
+        return;
+     }
+
      # do not answer to non-supported queries
      if ($type ne 'ANY' and $type ne 'PTR' and $type ne 'AAAA') {
         $self->error("Unsupported qtype");
