@@ -407,7 +407,7 @@ sub do_lookup {
             return;
           }
 
-          $tmp = join '', reverse split(/\./, $tmp);
+          $tmp = join('', reverse(split(/\./, $tmp)));
           $tmp=~s/^0*//g;
           $tmp = '00' if $tmp eq '';
 
@@ -432,7 +432,7 @@ sub do_lookup {
           my $tmp = $1;
 
           # prepare domain name
-          my $revdom = join '', reverse split /\./, $dom2;
+          my $revdom = join('', reverse(split(/\./, $dom2)));
           $revdom =~s/arpaip6//; # we need to remove this
 
           # decode $tmp, if possible.
@@ -647,7 +647,7 @@ sub getbeforeandafternamesabsolute {
     return;
   }
 
-  my $revdom = join ' ', reverse split /\./, $dom;
+  my $revdom = join(' ', reverse(split(/\./, $dom)));
   $revdom =~s/arpa ip6//; # we need to remove this
 
   my $dnibbles = length($revdom)/2; # domain bit
