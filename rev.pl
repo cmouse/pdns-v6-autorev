@@ -339,10 +339,10 @@ sub do_lookup {
   # Lookup possible overrides from database
   if ($type eq 'ANY') {
     $stmt = $d->prepare('SELECT domain_id,name,type,content,prio,ttl,auth FROM records WHERE name = ?');
-    $ret = $stmt->execute(($name));
+    $ret = $stmt->execute(($p->{qname}));
   } else {
     $stmt = $d->prepare('SELECT domain_id,name,type,content,prio,ttl,auth FROM records WHERE name = ? AND type = ?');
-    $ret = $stmt->execute(($name,$type));
+    $ret = $stmt->execute(($p->{qname},$type));
   }
 
   # SQLite3 doesn't know how to tell us number of rows so we just give it a go
