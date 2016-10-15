@@ -317,6 +317,7 @@ sub do_lookup {
   my $self = shift;
   my $p = shift;
   my $name = $p->{qname};
+  $name = substr($name, 0, -1) if ($name=~/[.]$/);
   my $type = $p->{qtype};
   my $d = $self->d;
   my $stmt;
