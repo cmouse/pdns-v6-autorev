@@ -63,23 +63,28 @@ rpc $meth, @ARGV;
 ## Put whatever you want to run here. Or leave it empty if you
 ## only want to use the command line
 
-# should succeed
-rpc 'lookup', qname => 'dyn.powerdns.com', qtype => 'SOA';
-# should return 2001:6e8::
-rpc 'lookup', qname => "$prefix-yy.dyn.powerdns.com", qtype => 'ANY';
-# should return $prefix-gr5y
-rpc 'lookup', qname => '6.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.e.6.0.1.0.0.2.ip6.arpa', qtype => 'ANY';
-# should return 2001:6e8::16
-rpc 'lookup', "qtype"=>"SOA","qname"=>"$prefix-gr5y.dyn.powerdns.com","remote"=>"127.0.0.1","local"=>"127.0.0.1","real-remote"=>"127.0.0.1/32","zone-id"=>-1;
-# some things that should work as well
-rpc 'lookup', "qtype"=>"ANY","qname"=>"$prefix-ny.dyn.powerdns.com","remote"=>"127.0.0.1","local"=>"127.0.0.1","real-remote"=>"127.0.0.1/32","zone-id"=>-1;
-rpc 'lookup', "qtype"=>"ANY","qname"=>"$prefix-nynynynynynynyy.dyn.powerdns.com","remote"=>"127.0.0.1","local"=>"127.0.0.1","real-remote"=>"127.0.0.1/32","zone-id"=>-1;
-rpc 'lookup', "qtype"=>"ANY","qname"=>"$prefix-nt5gd1p31frnt5gd1p31fry.dyn.powerdns.com","remote"=>"127.0.0.1","local"=>"127.0.0.1","real-remote"=>"127.0.0.1/32","zone-id"=>-1;
-# should fail
-rpc 'lookup', "qtype"=>"ANY","qname"=>"0.2.a.1.d.2.f.7.e.1.b.a.e.7.8.5.0.0.0.0.0.0.0.0.8.e.6.0.1.0.0.2.ip6.arpa";
-rpc 'lookup', "qtype"=>"SOA","qname"=>"test.dyn.powerdns.com";
+for my $dot ("",".") {
+	print "\n\nEXPECT SUCCESS\n--------------\n";
+	# should succeed
+	rpc 'lookup', qname => "dyn.powerdns.com$dot", qtype => 'SOA';
+	# should return 2001:6e8::
+	rpc 'lookup', qname => "$prefix-yy.dyn.powerdns.com$dot", qtype => 'ANY';
+	# should return $prefix-gr5y
+	rpc 'lookup', qname => "6.1.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.0.8.e.6.0.1.0.0.2.ip6.arpa$dot", qtype => 'ANY';
+	# should return 2001:6e8::16
+	rpc 'lookup', "qtype"=>"AAAA","qname"=>"$prefix-gr5y.dyn.powerdns.com$dot","remote"=>"127.0.0.1","local"=>"127.0.0.1","real-remote"=>"127.0.0.1/32","zone-id"=>-1;
+	# some things that should work as well
+	rpc 'lookup', "qtype"=>"ANY","qname"=>"$prefix-ny.dyn.powerdns.com$dot","remote"=>"127.0.0.1","local"=>"127.0.0.1","real-remote"=>"127.0.0.1/32","zone-id"=>-1;
+	rpc 'lookup', "qtype"=>"ANY","qname"=>"$prefix-nynynynynynynyy.dyn.powerdns.com$dot","remote"=>"127.0.0.1","local"=>"127.0.0.1","real-remote"=>"127.0.0.1/32","zone-id"=>-1;
+	rpc 'lookup', "qtype"=>"ANY","qname"=>"$prefix-nt5gd1p31frnt5gd1p31fry.dyn.powerdns.com$dot","remote"=>"127.0.0.1","local"=>"127.0.0.1","real-remote"=>"127.0.0.1/32","zone-id"=>-1;
+	# should fail
+	print "\n\nEXPECT FAIL\n-----------\n";
 
-rpc 'getalldomainmetadata', 'name' => 'dyn.powerdns.com';
+	rpc 'lookup', "qtype"=>"ANY","qname"=>"0.2.a.1.d.2.f.7.e.1.b.a.e.7.8.5.0.0.0.0.0.0.0.0.8.e.6.0.1.0.0.2.ip6.arpa$dot";
+	rpc 'lookup', "qtype"=>"SOA","qname"=>"test.dyn.powerdns.com$dot";
+	print "\n\nEXPECT SUCCESS\n--------------\n";
+	rpc 'getalldomainmetadata', 'name' => "dyn.powerdns.com$dot";
+}
 
 #rpc 'adddomainkey', 'name' => 'dyn.powerdns.com', 'key' => { 'flags' => 257, 'active' => 1, 'content' => 'foobar key' }
 
