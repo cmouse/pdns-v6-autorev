@@ -6,7 +6,16 @@ use strict;
 use warnings;
 use 5.005;
 use IPC::Open2;
-use JSON::Any;
+my $jsonapi;;
+
+# try load JSON::MaybeXS first
+if(eval 'use JSON::MaybeXS; 1') {
+    $jsonapi = "JSON::MaybeXS";
+} elsif(eval 'use JSON::Any; 1') {
+    $jsonapi = "JSON::Any";
+} else {
+    die("No JSON::MaybeXS or JSON::Any found");
+}
 
 ### CONFIGURATION SECTION
 
@@ -25,7 +34,7 @@ my $in;
 my $out;
 my $pid = open2($in,$out,$script);
 
-my $j = JSON::Any->new;
+my $j = $jsonapi->new;
 
 sub rpc {
   my $meth = shift;

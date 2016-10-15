@@ -12,7 +12,17 @@ use strict;
 use warnings;
 use 5.005;
 use DBI;
-use JSON::Any;
+
+my $jsonapi;;
+
+# try load JSON::MaybeXS first
+if(eval 'use JSON::MaybeXS; 1') {
+    $jsonapi = "JSON::MaybeXS";
+} elsif(eval 'use JSON::Any; 1') {
+    $jsonapi = "JSON::Any";
+} else {
+    die("No JSON::MaybeXS or JSON::Any found");
+}
 use Data::Dumper;
 use Carp ();
 
@@ -137,7 +147,7 @@ sub new {
   my $self = {};
 
   # Create a JSON encoder/decoder object
-  $self->{_j} = JSON::Any->new;
+  $self->{_j} = $jsonapi->new;
   
   # initialize default values
   $self->{_result} = $self->{_j}->false;
