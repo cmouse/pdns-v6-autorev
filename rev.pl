@@ -375,7 +375,7 @@ sub do_lookup {
 
      # do not answer to non-supported queries
      if ($type ne 'ANY' and $type ne 'PTR' and $type ne 'AAAA') {
-        $self->error;
+        $self->error("Unsupported qtype");
         return;
      }
 
@@ -460,7 +460,7 @@ sub do_lookup {
           return;
      }
 
-     $self->error;
+     $self->error("Non-matching qname");
   }
   return;
 }
